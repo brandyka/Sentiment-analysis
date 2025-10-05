@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Operational Dashboard</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg-light: linear-gradient(135deg, #e0eafc, #cfdef3);
+      --bg-dark: linear-gradient(135deg, #1e1e2f, #2c2c3a);
+      --card-light: #ffffff;
+      --card-dark: #2a2a3d;
+      --text-light: #222;
+      --text-dark: #eee;
+      --primary: #6c63ff;
+      --secondary: #5a55da;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--bg-light);
+      min-height: 100vh;
+      padding: 20px;
+      transition: all 0.3s ease-in-out;
+    }
+
+    body.dark {
+      background: var(--bg-dark);
+      color: var(--text-dark);
+    }
+
+    .dashboard-header {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      border-radius: 20px;
+      padding: 1.8rem;
+      margin-bottom: 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #fff;
+      box-shadow: 0 8px 20px rgba(92,85,218,0.3);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .dashboard-header h2 {
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .toggle-btn {
+      cursor: pointer;
+      background: rgba(255,255,255,0.15);
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.3s ease;
+    }
+
+    .toggle-btn:hover {
+      background: rgba(255,255,255,0.3);
+    }
+
+    .card-custom {
+      border-radius: 18px;
+      border: none;
+      padding: 1.5rem;
+      background: var(--card-light);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    body.dark .card-custom {
+      background: var(--card-dark);
+      color: var(--text-dark);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+    }
+
+    body.dark .review-item {
+      background: rgba(255,255,255,0.05) !important;
+    }
+
+    .chart-container {
+      position: relative;
+      height: 92%;
+      width: 92%;
+    }
+
+    .form-select {
+      border-radius: 12px;
+      padding: 8px 14px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container-fluid">
+    <!-- Header -->
+    <div class="dashboard-header">
+      <div>
+        <h2>Welcome, {{ username or "User" }}</h2>
+        <p>{{ today }}</p>
+      </div>
+      <button class="toggle-btn" id="themeToggle">🌙</button>
+    </div>
+
+    <!-- Mode Selector -->
+    <div class="d-flex justify-content-end mb-3">
+      <form method="get" action="/dashboard">
+        <select name="mode" onchange="this.form.submit()" class="form-select w-auto shadow-sm">
+          <option value="today" {% if mode == 'today' %}selected{% endif %}>Hari Ini</option>
+          <option value="overall" {% if mode == 'overall' %}selected{% endif %}>Keseluruhan</option>
+        </select>
+      </form>
+    </div>
+
+    <!-- Stats -->
+    <div class="row g-4 mb-4">
+      <div class="col-md-4">
+        <div class="card-custom text-center">
+          <h6>Total Reviews</h6>
+          <h3>{{ total_reviews }}</h3>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card-custom text-center">
+          <h6>Positive</h6>
+          <h3 class="text-success">{{ positive_count }}</h3>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card-custom text-center">
+          <h6>Negative</h6>
+          <h3 class="text-danger">{{ negative_count }}</h3>
+        </div>
+      </div>
+    </div>
+
+    <!-- Word Cloud Section -->
+    <div class="row g-3 mb-4">
+      <div class="col-md-6">
+        <div class="card-custom" style="padding: 1rem;">
+          <h6 class="text-success mb-2" style="font-size: 0.9rem;">Positive Word Cloud</h6>
+          <img src="{{ url_for('static', filename=wordcloud_pos) }}" alt="Positive Word Cloud" class="w-100 rounded" style="max-height: 200px; object-fit: contain;">
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card-custom" style="padding: 1rem;">
+          <h6 class="text-danger mb-2" style="font-size: 0.9rem;">Negative Word Cloud</h6>
+          <img src="{{ url_for('static', filename=wordcloud_neg) }}" alt="Negative Word Cloud" class="w-100 rounded" style="max-height: 200px; object-fit: contain;">
+        </div>
+      </div>
+    </div>
+
+    <!-- Trend Chart + Donut Chart -->
+    <div class="row g-4">
+      <!-- Trend Chart -->
+      <div class="col-md-8">
+        <div class="card-custom h-100">
+          <h6>
+            {% if mode == 'today' %}
+              Sentiment Trend (Today - per Hour)
+            {% else %}
+              Sentiment Trend (7 Days)
+            {% endif %}
+          </h6>
+
+          <div class="chart-container">
+            <canvas id="trendChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Donut Chart Card -->
+      <div class="col-md-4">
+        <div class="card-custom h-100">
+          <h6>Sentiment Distribution</h6>
+          
+          <div class="d-flex align-items-center justify-content-center" style="height: 100%;">
+            <!-- Donut Chart -->
+            <div style="width: 75%; max-width: 280px;">
+              <canvas id="incomeChart"></canvas>
+            </div>
+
+            <!-- Persentase di samping donut -->
+            <div class="ms-3 text-center">
+              <h6 class="mb-1 text-success">Positive</h6>
+              <h4 class="text-success">
+                {{ "%.1f"|format((positive_count / total_reviews * 100) if total_reviews > 0 else 0) }}%
+              </h4>
+              <h6 class="mb-1 text-danger">Negative</h6>
+              <h4 class="text-danger">
+                {{ "%.1f"|format((negative_count / total_reviews * 100) if total_reviews > 0 else 0) }}%
+              </h4>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Reviews -->
+    <div class="row mt-4">
+      <div class="col-md-12">
+        <div class="card-custom">
+          <h6>Recent Reviews</h6>
+          <ul>
+            {% for review in recent_reviews %}
+              <li>[{{ review.time }}] ({{ "Positive" if review.prediction==2 else "Negative" }}) - {{ review.text }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  const body = document.body;
+  const themeToggle = document.getElementById("themeToggle");
+
+  // === Trend Chart Data ===
+  const trendCtx = document.getElementById('trendChart').getContext('2d');
+  const trendData = {
+    labels: {{ trend_labels|tojson }},
+    positive: {{ trend_positive|tojson }},
+    negative: {{ trend_negative|tojson }},
+    score: {{ trend_score|tojson }}
+  };
+
+  let trendChart = new Chart(trendCtx, {
+    data: {
+      labels: trendData.labels,
+      datasets: [
+        {
+          type: 'bar',
+          label: 'Positive',
+          data: trendData.positive,
+          backgroundColor: '#4CAF50',
+          stack: 'sentiment'
+        },
+        {
+          type: 'bar',
+          label: 'Negative',
+          data: trendData.negative,
+          backgroundColor: '#F44336',
+          stack: 'sentiment'
+        },
+        {
+          type: 'line',
+          label: 'Sentiment Score',
+          data: trendData.score,
+          borderColor: '#2196F3',
+          backgroundColor: '#2196F3',
+          yAxisID: 'y1',
+          tension: 0.3,
+          fill: false,
+          pointRadius: 4
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      interaction: { mode: 'index', intersect: false },
+      stacked: true,
+      scales: {
+        y: {
+          beginAtZero: true,
+          stacked: true,
+          title: { display: true, text: 'No of Comments' }
+        },
+        y1: {
+          beginAtZero: true,
+          position: 'right',
+          title: { display: true, text: 'positive sentiment (%)' },
+          grid: { drawOnChartArea: false }
+        }
+      }
+    }
+  });
+
+  // === Donut Chart ===
+  const incomeCtx = document.getElementById('incomeChart').getContext('2d');
+  let incomeChart = new Chart(incomeCtx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Positive', 'Negative'],
+      datasets: [{
+        data: [{{ positive_count }}, {{ negative_count }}],
+        backgroundColor: ['#4CAF50', '#F44336'],
+        borderWidth: 0,
+        cutout: '50%',
+        hoverOffset: 20
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: true, position: 'bottom' }
+      }
+    }
+  });
+
+  // === Fungsi Update Tema Chart ===
+  function updateChartTheme() {
+    const isDark = body.classList.contains("dark");
+    const textColor = isDark ? "#eee" : "#222";
+    const gridColor = isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)";
+
+    // Update trend chart
+    trendChart.options.scales.x.ticks = { color: textColor };
+    trendChart.options.scales.y.ticks = { color: textColor };
+    trendChart.options.scales.y1.ticks = { color: textColor };
+    trendChart.options.scales.x.grid = { color: gridColor };
+    trendChart.options.scales.y.grid = { color: gridColor };
+    trendChart.options.plugins = {
+      legend: { labels: { color: textColor } }
+    };
+    trendChart.update();
+
+    // Update donut chart
+    incomeChart.options.plugins.legend.labels.color = textColor;
+    incomeChart.update();
+  }
+
+  // === Theme Toggle ===
+  themeToggle.addEventListener("click", () => {
+    body.classList.toggle("dark");
+    if (body.classList.contains("dark")) {
+      themeToggle.textContent = "☀️";
+    } else {
+      themeToggle.textContent = "🌙";
+    }
+    updateChartTheme();
+  });
+
+  // Apply default theme (light)
+  updateChartTheme();
+</script>
+
+</body>
+</html>
