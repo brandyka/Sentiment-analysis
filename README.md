@@ -27,7 +27,7 @@ This project aims to analyze sentiment from sales reviews, The model used in thi
 
 - Python
 - Google Colab (For training model): [Link](https://colab.research.google.com/drive/1ljIgUG65GTcuhj8ZkR46oWeK37-wii9p?usp=sharing)
-
+- Dataset: [Link](https://drive.google.com/file/d/16R_I6P3HBbP63uFi8M0IAYdcnOId3WGC/view?usp=sharing)
 - VSCode (For run model)
 - Pandas, NumPy, scipy.stats
 - scikit-learn
