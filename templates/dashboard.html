@@ -1,349 +1,247 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Operational Dashboard</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    :root {
-      --bg-light: linear-gradient(135deg, #e0eafc, #cfdef3);
-      --bg-dark: linear-gradient(135deg, #1e1e2f, #2c2c3a);
-      --card-light: #ffffff;
-      --card-dark: #2a2a3d;
-      --text-light: #222;
-      --text-dark: #eee;
-      --primary: #6c63ff;
-      --secondary: #5a55da;
-    }
-
-    body {
-      font-family: 'Poppins', sans-serif;
-      background: var(--bg-light);
-      min-height: 100vh;
-      padding: 20px;
-      transition: all 0.3s ease-in-out;
-    }
-
-    body.dark {
-      background: var(--bg-dark);
-      color: var(--text-dark);
-    }
-
-    .dashboard-header {
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      border-radius: 20px;
-      padding: 1.8rem;
-      margin-bottom: 2rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      color: #fff;
-      box-shadow: 0 8px 20px rgba(92,85,218,0.3);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .dashboard-header h2 {
-      font-weight: 600;
-      margin: 0;
-    }
-
-    .toggle-btn {
-      cursor: pointer;
-      background: rgba(255,255,255,0.15);
-      border: none;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background 0.3s ease;
-    }
-
-    .toggle-btn:hover {
-      background: rgba(255,255,255,0.3);
-    }
-
-    .card-custom {
-      border-radius: 18px;
-      border: none;
-      padding: 1.5rem;
-      background: var(--card-light);
-      backdrop-filter: blur(8px);
-      box-shadow: 0 8px 25px rgba(0,0,0,0.08);
-      transition: all 0.3s ease;
-      position: relative;
-    }
-
-    body.dark .card-custom {
-      background: var(--card-dark);
-      color: var(--text-dark);
-      box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-    }
-
-    body.dark .review-item {
-      background: rgba(255,255,255,0.05) !important;
-    }
-
-    .chart-container {
-      position: relative;
-      height: 92%;
-      width: 92%;
-    }
-
-    .form-select {
-      border-radius: 12px;
-      padding: 8px 14px;
-      font-size: 14px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Sentiment Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .chart-container {
+            position: relative;
+            height: 40vh;
+            width: 100%;
+        }
+    </style>
 </head>
-<body>
-  <div class="container-fluid">
-    <!-- Header -->
-    <div class="dashboard-header">
-      <div>
-        <h2>Welcome, {{ username or "User" }}</h2>
-        <p>{{ today }}</p>
-      </div>
-      <button class="toggle-btn" id="themeToggle">🌙</button>
-    </div>
+<body class="bg-gray-50">
 
-    <!-- Mode Selector -->
-    <div class="d-flex justify-content-end mb-3">
-      <form method="get" action="/dashboard">
-        <select name="mode" onchange="this.form.submit()" class="form-select w-auto shadow-sm">
-          <option value="today" {% if mode == 'today' %}selected{% endif %}>Hari Ini</option>
-          <option value="overall" {% if mode == 'overall' %}selected{% endif %}>Keseluruhan</option>
-        </select>
-      </form>
-    </div>
-
-    <!-- Stats -->
-    <div class="row g-4 mb-4">
-      <div class="col-md-4">
-        <div class="card-custom text-center">
-          <h6>Total Reviews</h6>
-          <h3>{{ total_reviews }}</h3>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="card-custom text-center">
-          <h6>Positive</h6>
-          <h3 class="text-success">{{ positive_count }}</h3>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="card-custom text-center">
-          <h6>Negative</h6>
-          <h3 class="text-danger">{{ negative_count }}</h3>
-        </div>
-      </div>
-    </div>
-
-    <!-- Word Cloud Section -->
-    <div class="row g-3 mb-4">
-      <div class="col-md-6">
-        <div class="card-custom" style="padding: 1rem;">
-          <h6 class="text-success mb-2" style="font-size: 0.9rem;">Positive Word Cloud</h6>
-          <img src="{{ url_for('static', filename=wordcloud_pos) }}" alt="Positive Word Cloud" class="w-100 rounded" style="max-height: 200px; object-fit: contain;">
-        </div>
-      </div>
-      <div class="col-md-6">
-        <div class="card-custom" style="padding: 1rem;">
-          <h6 class="text-danger mb-2" style="font-size: 0.9rem;">Negative Word Cloud</h6>
-          <img src="{{ url_for('static', filename=wordcloud_neg) }}" alt="Negative Word Cloud" class="w-100 rounded" style="max-height: 200px; object-fit: contain;">
-        </div>
-      </div>
-    </div>
-
-    <!-- Trend Chart + Donut Chart -->
-    <div class="row g-4">
-      <!-- Trend Chart -->
-      <div class="col-md-8">
-        <div class="card-custom h-100">
-          <h6>
-            {% if mode == 'today' %}
-              Sentiment Trend (Today - per Hour)
-            {% else %}
-              Sentiment Trend (7 Days)
-            {% endif %}
-          </h6>
-
-          <div class="chart-container">
-            <canvas id="trendChart"></canvas>
-          </div>
-        </div>
-      </div>
-
-      <!-- Donut Chart Card -->
-      <div class="col-md-4">
-        <div class="card-custom h-100">
-          <h6>Sentiment Distribution</h6>
-          
-          <div class="d-flex align-items-center justify-content-center" style="height: 100%;">
-            <!-- Donut Chart -->
-            <div style="width: 75%; max-width: 280px;">
-              <canvas id="incomeChart"></canvas>
+    <div class="flex h-screen bg-gray-50">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-white shadow-md flex flex-col">
+            <div class="p-6 flex items-center space-x-3 border-b">
+                <i class="fas fa-robot text-3xl text-blue-600"></i>
+                <h1 class="text-xl font-bold text-gray-900">Sentiment Dashboard</h1>
             </div>
-
-            <!-- Persentase di samping donut -->
-            <div class="ms-3 text-center">
-              <h6 class="mb-1 text-success">Positive</h6>
-              <h4 class="text-success">
-                {{ "%.1f"|format((positive_count / total_reviews * 100) if total_reviews > 0 else 0) }}%
-              </h4>
-              <h6 class="mb-1 text-danger">Negative</h6>
-              <h4 class="text-danger">
-                {{ "%.1f"|format((negative_count / total_reviews * 100) if total_reviews > 0 else 0) }}%
-              </h4>
+            <nav class="flex-1 px-4 py-6 space-y-2">
+                <a href="/dashboard" class="w-full flex items-center px-4 py-2 text-gray-700 bg-gray-200 rounded-lg">
+                    <i class="fas fa-tachometer-alt w-6 h-6 mr-3"></i>
+                    Dashboard
+                </a>
+                <a href="/" class="w-full flex items-center px-4 py-2 text-gray-700 hover:bg-gray-200 rounded-lg transition duration-200">
+                    <i class="fas fa-home w-6 h-6 mr-3"></i>
+                    Main Page
+                </a>
+            </nav>
+            <div class="p-4 border-t">
+                <p class="text-xs text-center text-gray-500">&copy; 2025 Sentiment Analyzer</p>
             </div>
-          </div>
-        </div>
-      </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100">
+            <div class="container mx-auto px-6 py-8">
+                <!-- Header -->
+                <div class="flex justify-between items-center mb-8">
+                    <h2 class="text-3xl font-bold text-gray-800">Analysis summary</h2>
+                    <div class="flex space-x-2">
+                        <a href="?mode=today" class="px-4 py-2 text-sm font-medium rounded-md {{ 'bg-blue-600 text-white' if mode == 'today' else 'bg-white text-gray-700 hover:bg-gray-200' }} transition">Hari Ini</a>
+                        <a href="?mode=overall" class="px-4 py-2 text-sm font-medium rounded-md {{ 'bg-blue-600 text-white' if mode == 'overall' else 'bg-white text-gray-700 hover:bg-gray-200' }} transition">Keseluruhan</a>
+                    </div>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                    <!-- Total Reviews -->
+                    <div class="bg-white p-6 rounded-xl shadow-md flex items-center space-x-4">
+                        <div class="p-3 bg-blue-100 rounded-full">
+                           <i class="fas fa-star text-blue-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-500">Total Review</p>
+                            <p class="text-3xl font-bold text-gray-900">{{ total_reviews }}</p>
+                        </div>
+                    </div>
+                    <!-- Positive Reviews -->
+                    <div class="bg-white p-6 rounded-xl shadow-md flex items-center space-x-4">
+                        <div class="p-3 bg-green-100 rounded-full">
+                           <i class="fas fa-smile text-green-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-500">Positive Review</p>
+                            <p class="text-3xl font-bold text-gray-900">{{ positive_count }} <span class="text-lg font-medium text-green-500">({{ positive_percentage }}%)</span></p>
+                        </div>
+                    </div>
+                    <!-- Negative Reviews -->
+                    <div class="bg-white p-6 rounded-xl shadow-md flex items-center space-x-4">
+                        <div class="p-3 bg-red-100 rounded-full">
+                           <i class="fas fa-frown text-red-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-500">Negative Review</p>
+                            <p class="text-3xl font-bold text-gray-900">{{ negative_count }} <span class="text-lg font-medium text-red-500">({{ negative_percentage }}%)</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NEW: Sentiment Trend Chart (Full Width) -->
+                <div class="bg-white p-6 rounded-xl shadow-md mb-8">
+                    <h3 class="text-xl font-semibold mb-4 text-gray-800">Sentiment Trend</h3>
+                    <div class="chart-container">
+                        <canvas id="sentimentTrendChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- NEW: Donut Chart and Recent Reviews -->
+                <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 mb-8">
+                    <!-- Donut Chart -->
+                    <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-md">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Sentiment Distribution</h3>
+                        <div class="chart-container" style="height: 35vh;">
+                            <canvas id="sentimentDonutChart"></canvas>
+                        </div>
+                    </div>
+                    <!-- Recent Reviews -->
+                    <div class="lg:col-span-3 bg-white p-6 rounded-xl shadow-md">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Latest Review</h3>
+                        <div class="space-y-4">
+                            {% if recent_reviews %}
+                                {% for review in recent_reviews %}
+                                <div class="flex items-start space-x-3">
+                                    <div class="flex-shrink-0">
+                                        {% if review.prediction == 2 %}
+                                        <span class="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center"><i class="fas fa-smile text-green-600"></i></span>
+                                        {% else %}
+                                        <span class="h-8 w-8 rounded-full bg-red-100 flex items-center justify-center"><i class="fas fa-frown text-red-600"></i></span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm text-gray-700 leading-tight truncate" title="{{ review.text }}">{{ review.text }}</p>
+                                        <p class="text-xs text-gray-400 mt-1">{{ review.time }}</p>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <p class="text-center text-gray-500 py-8">There are no reviews yet.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Word Clouds -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Positive Word Cloud -->
+                    <div class="bg-white p-6 rounded-xl shadow-md">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Positive Wordcloud</h3>
+                        <div class="flex justify-center items-center">
+                            <img src="{{ url_for('static', filename=wordcloud_pos) }}?t={{ today }}" alt="Positive Word Cloud" class="rounded-lg">
+                        </div>
+                    </div>
+                    <!-- Negative Word Cloud -->
+                    <div class="bg-white p-6 rounded-xl shadow-md">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Negative Wordcloud</h3>
+                        <div class="flex justify-center items-center">
+                             <img src="{{ url_for('static', filename=wordcloud_neg) }}?t={{ today }}" alt="Negative Word Cloud" class="rounded-lg">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
     </div>
 
-    <!-- Recent Reviews -->
-    <div class="row mt-4">
-      <div class="col-md-12">
-        <div class="card-custom">
-          <h6>Recent Reviews</h6>
-          <ul>
-            {% for review in recent_reviews %}
-              <li>[{{ review.time }}] ({{ "Positive" if review.prediction==2 else "Negative" }}) - {{ review.text }}</li>
-            {% endfor %}
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Trend Chart
+            const trendCtx = document.getElementById('sentimentTrendChart').getContext('2d');
+            const trend_labels = {{ trend_labels | tojson }};
+            const trend_positive = {{ trend_positive | tojson }};
+            const trend_negative = {{ trend_negative | tojson }};
+            const xAxisLabel = '{{ "Waktu (Jam)" if mode == "today" else "Tanggal" }}';
 
-  <script>
-  const body = document.body;
-  const themeToggle = document.getElementById("themeToggle");
+            new Chart(trendCtx, {
+                type: 'bar',
+                data: {
+                    labels: trend_labels,
+                    datasets: [
+                        {
+                            label: 'Positif',
+                            data: trend_positive,
+                            borderColor: 'rgba(34, 197, 94, 1)',
+                            backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                            fill: true,
+                            tension: 0.3,
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Negatif',
+                            data: trend_negative,
+                            borderColor: 'rgba(239, 68, 68, 1)',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            fill: true,
+                            tension: 0.3,
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Number of reviews' }},
+                        x: { title: { display: true, text: xAxisLabel }}
+                    },
+                    plugins: { legend: { position: 'top' }, tooltip: { mode: 'index', intersect: false }},
+                    interaction: { mode: 'nearest', axis: 'x', intersect: false }
+                }
+            });
 
-  // === Trend Chart Data ===
-  const trendCtx = document.getElementById('trendChart').getContext('2d');
-  const trendData = {
-    labels: {{ trend_labels|tojson }},
-    positive: {{ trend_positive|tojson }},
-    negative: {{ trend_negative|tojson }},
-    score: {{ trend_score|tojson }}
-  };
+            // NEW: Donut Chart
+            const donutCtx = document.getElementById('sentimentDonutChart').getContext('2d');
+            const positiveCount = {{ positive_count | tojson }};
+            const negativeCount = {{ negative_count | tojson }};
 
-  let trendChart = new Chart(trendCtx, {
-    data: {
-      labels: trendData.labels,
-      datasets: [
-        {
-          type: 'bar',
-          label: 'Positive',
-          data: trendData.positive,
-          backgroundColor: '#4CAF50',
-          stack: 'sentiment'
-        },
-        {
-          type: 'bar',
-          label: 'Negative',
-          data: trendData.negative,
-          backgroundColor: '#F44336',
-          stack: 'sentiment'
-        },
-        {
-          type: 'line',
-          label: 'Sentiment Score',
-          data: trendData.score,
-          borderColor: '#2196F3',
-          backgroundColor: '#2196F3',
-          yAxisID: 'y1',
-          tension: 0.3,
-          fill: false,
-          pointRadius: 4
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      interaction: { mode: 'index', intersect: false },
-      stacked: true,
-      scales: {
-        y: {
-          beginAtZero: true,
-          stacked: true,
-          title: { display: true, text: 'No of Comments' }
-        },
-        y1: {
-          beginAtZero: true,
-          position: 'right',
-          title: { display: true, text: 'positive sentiment (%)' },
-          grid: { drawOnChartArea: false }
-        }
-      }
-    }
-  });
-
-  // === Donut Chart ===
-  const incomeCtx = document.getElementById('incomeChart').getContext('2d');
-  let incomeChart = new Chart(incomeCtx, {
-    type: 'doughnut',
-    data: {
-      labels: ['Positive', 'Negative'],
-      datasets: [{
-        data: [{{ positive_count }}, {{ negative_count }}],
-        backgroundColor: ['#4CAF50', '#F44336'],
-        borderWidth: 0,
-        cutout: '50%',
-        hoverOffset: 20
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: { display: true, position: 'bottom' }
-      }
-    }
-  });
-
-  // === Fungsi Update Tema Chart ===
-  function updateChartTheme() {
-    const isDark = body.classList.contains("dark");
-    const textColor = isDark ? "#eee" : "#222";
-    const gridColor = isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)";
-
-    // Update trend chart
-    trendChart.options.scales.x.ticks = { color: textColor };
-    trendChart.options.scales.y.ticks = { color: textColor };
-    trendChart.options.scales.y1.ticks = { color: textColor };
-    trendChart.options.scales.x.grid = { color: gridColor };
-    trendChart.options.scales.y.grid = { color: gridColor };
-    trendChart.options.plugins = {
-      legend: { labels: { color: textColor } }
-    };
-    trendChart.update();
-
-    // Update donut chart
-    incomeChart.options.plugins.legend.labels.color = textColor;
-    incomeChart.update();
-  }
-
-  // === Theme Toggle ===
-  themeToggle.addEventListener("click", () => {
-    body.classList.toggle("dark");
-    if (body.classList.contains("dark")) {
-      themeToggle.textContent = "☀️";
-    } else {
-      themeToggle.textContent = "🌙";
-    }
-    updateChartTheme();
-  });
-
-  // Apply default theme (light)
-  updateChartTheme();
-</script>
-
+            new Chart(donutCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Positive', 'Negative'],
+                    datasets: [{
+                        label: 'Jumlah Review',
+                        data: [positiveCount, negativeCount],
+                        backgroundColor: [
+                            'rgba(34, 197, 94, 0.85)',
+                            'rgba(239, 68, 68, 0.85)'
+                        ],
+                        borderColor: [
+                            '#ffffff',
+                            '#ffffff'
+                        ],
+                        borderWidth: 2,
+                        hoverOffset: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                boxWidth: 15,
+                                font: {
+                                    size: 14
+                                }
+                            }
+                        }
+                    },
+                    cutout: '60%'
+                }
+            });
+        });
+    </script>
 </body>
 </html>

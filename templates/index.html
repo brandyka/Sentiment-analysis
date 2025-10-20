@@ -1,179 +1,124 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <title>Submit Feedback</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: "Poppins", "Segoe UI", sans-serif;
-    }
-
-    body {
-      background: linear-gradient(135deg, #e0eafc, #cfdef3);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-    }
-
-    .card {
-      background: rgba(255, 255, 255, 0.85);
-      backdrop-filter: blur(12px);
-      padding: 40px 30px;
-      border-radius: 20px;
-      box-shadow: 0 15px 30px rgba(0,0,0,0.15);
-      width: 100%;
-      max-width: 420px;
-      text-align: center;
-      animation: fadeInUp 0.6s ease;
-    }
-
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(40px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .icon {
-      margin-bottom: 18px;
-    }
-
-    .icon svg {
-      width: 65px;
-      height: 65px;
-      stroke: #6c63ff;
-      fill: none;
-      stroke-width: 2;
-    }
-
-    h2 {
-      font-size: 22px;
-      font-weight: 600;
-      margin-bottom: 10px;
-      color: #222;
-    }
-
-    p.desc {
-      font-size: 14px;
-      color: #666;
-      margin-bottom: 25px;
-      line-height: 1.6;
-    }
-
-    textarea {
-      width: 100%;
-      height: 110px;
-      border: 1px solid #ddd;
-      border-radius: 12px;
-      padding: 14px;
-      font-size: 14px;
-      resize: none;
-      outline: none;
-      margin-bottom: 20px;
-      transition: all 0.3s ease;
-      background: #fafafa;
-    }
-
-    textarea:focus {
-      border-color: #6c63ff;
-      box-shadow: 0 0 10px rgba(108,99,255,0.3);
-      background: #fff;
-    }
-
-    button {
-      width: 100%;
-      padding: 14px;
-      border: none;
-      border-radius: 12px;
-      background: linear-gradient(135deg, #6c63ff, #5a55da);
-      color: white;
-      font-weight: 600;
-      font-size: 15px;
-      letter-spacing: 0.5px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    button:hover {
-      background: linear-gradient(135deg, #5a55da, #3d3abf);
-      transform: translateY(-2px);
-      box-shadow: 0 8px 18px rgba(92,85,218,0.3);
-    }
-
-    #out {
-      margin-top: 18px;
-      font-weight: 500;
-      font-size: 15px;
-    }
-
-    .toast {
-      position: fixed;
-      bottom: 30px;
-      right: 30px;
-      background: #6c63ff;
-      color: #fff;
-      padding: 12px 20px;
-      border-radius: 10px;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.2);
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.4s ease, transform 0.4s ease;
-      transform: translateY(30px);
-    }
-
-    .toast.show {
-      opacity: 1;
-      pointer-events: auto;
-      transform: translateY(0);
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentiment Analysis Review</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
 </head>
-<body>
-  <div class="card">
-    <div class="icon">
-      <!-- Bubble Chat Outline SVG -->
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-      </svg>
-    </div>
-    <h2>Submit Your Feedback</h2>
-    <p class="desc">We value your opinion! Please share your thoughts with us below.</p>
-    <form id="f">
-      <textarea id="txt" placeholder="Write your message..." required></textarea>
-      <button type="submit">SEND FEEDBACK</button>
-    </form>
-    <p id="out"></p>
-  </div>
+<body class="bg-gray-100 text-gray-800 flex flex-col min-h-screen">
 
-  <!-- Toast Notification -->
-  <div class="toast" id="toast">✨ Thank you for your feedback!</div>
+    <!-- Header -->
+    <header class="bg-white shadow-md">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <i class="fas fa-robot text-2xl text-blue-600"></i>
+                <h1 class="text-xl font-bold text-gray-900">Sentiment Analyzer</h1>
+            </div>
+            <a href="/dashboard" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-300 flex items-center space-x-2">
+                <i class="fas fa-chart-line"></i>
+                <span>Dashboard</span>
+            </a>
+        </nav>
+    </header>
 
-  <script>
-    document.getElementById('f').addEventListener('submit', async e => {
-      e.preventDefault();
-      const text = document.getElementById('txt').value;
-      const res = await fetch('/api/predict', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ text })
-      });
+    <!-- Main Content -->
+    <main class="flex-grow container mx-auto px-6 py-12 flex items-center justify-center">
+        <div class="w-full max-w-2xl bg-white p-8 rounded-2xl shadow-lg text-center">
+            <h2 class="text-3xl font-bold mb-2">Analyze Your Review Sentiment</h2>
+            <p class="text-gray-600 mb-8">Enter a text or review below to find out the sentiment.</p>
 
-      const j = await res.json();
-      const out = document.getElementById('out');
-      const toast = document.getElementById('toast');
+            <form id="sentimentForm">
+                <textarea id="textInput" name="text" rows="6" class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-300" placeholder="Example: The service was excellent and the food was delicious!"></textarea>
+                
+                <button type="submit" class="mt-6 w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-transform transform hover:scale-105 duration-300 flex items-center justify-center space-x-2">
+                    <i class="fas fa-paper-plane"></i>
+                    <span>Analyze now</span>
+                </button>
+            </form>
 
-      // Show toast
-      toast.classList.add("show");
-      setTimeout(() => toast.classList.remove("show"), 3000);
-    });
-  </script>
+            <!-- Result Message Area -->
+            <div id="resultMessage" class="mt-6 p-4 rounded-lg text-center font-medium" style="display: none;"></div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white mt-auto">
+        <div class="container mx-auto px-6 py-4 text-center text-gray-500">
+            <p>&copy; 2025 Sentiment Analyzer. made by Flask & Tailwind CSS.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.getElementById('sentimentForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const textInput = document.getElementById('textInput');
+            const resultMessage = document.getElementById('resultMessage');
+            const text = textInput.value.trim();
+
+            if (!text) {
+                showMessage('Text cannot be empty!', 'error');
+                return;
+            }
+
+            // Show loading state
+            showMessage('Menganalisis...', 'loading');
+
+            try {
+                const response = await fetch('/api/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ text: text }),
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showMessage(result.message || 'Review berhasil dikirim!', 'success');
+                    textInput.value = ''; // Clear textarea on success
+                } else {
+                    throw new Error(result.error || 'Terjadi kesalahan.');
+                }
+            } catch (error) {
+                showMessage(error.message, 'error');
+            }
+        });
+
+        function showMessage(message, type) {
+            const resultMessage = document.getElementById('resultMessage');
+            resultMessage.textContent = message;
+            
+            // Reset classes
+            resultMessage.className = 'mt-6 p-4 rounded-lg text-center font-medium';
+
+            if (type === 'success') {
+                resultMessage.classList.add('bg-green-100', 'text-green-800');
+            } else if (type === 'error') {
+                resultMessage.classList.add('bg-red-100', 'text-red-800');
+            } else if (type === 'loading') {
+                resultMessage.classList.add('bg-blue-100', 'text-blue-800');
+            }
+            
+            resultMessage.style.display = 'block';
+
+            // Hide the message after 5 seconds, except for loading
+            if (type !== 'loading') {
+                setTimeout(() => {
+                    resultMessage.style.display = 'none';
+                }, 5000);
+            }
+        }
+    </script>
+
 </body>
 </html>
+

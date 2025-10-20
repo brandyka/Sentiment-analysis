@@ -52,7 +52,7 @@ def predict_sentiment(text, vectorizer, model):
 # -------- Home --------
 @app.route("/")
 def home():
-    return render_template("index.html")
+    return render_template("/index.html")
 
 # -------- Dashboard --------
 @app.route("/dashboard")

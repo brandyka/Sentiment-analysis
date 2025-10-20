@@ -1,6 +1,6 @@
 # Sentimen Analisis - Logistic Regression + NLP
 
-This project aims to analyze sentiment from sales reviews, The model used in this project is trained with Amazon Dataset and uses **Natural Language Processing (NLP)** techniques and **Logistic Regression** algorithm. The model is trained using **Google Colab**, and used/deployed via **VSCode**.
+This project aims to analyze sentiment from sales reviews, The model used in this project is trained with Amazon Dataset and uses **Natural Language Processing (NLP)** techniques and **Logistic Regression** algorithm. The model is trained using **Google Colab**, and used/deployed via  **Web page**.
 
 ## Feature
 
@@ -33,6 +33,7 @@ This project aims to analyze sentiment from sales reviews, The model used in thi
 - scikit-learn
 - NLTK / Sastrawi (untuk preprocessing bahasa)
 - Matplotlib / Seaborn (opsional: visualisasi)
+- HTML, CSS, JS, Tailwind(Front end stack)
 
 
 ## Visual diagram
@@ -46,7 +47,7 @@ This project aims to analyze sentiment from sales reviews, The model used in thi
 ## Installation Instruction
  - Clone repository
  - Open VS Code
- - Run the test.py file
- - Enter a review
+ - Active the environment
+ - run python app.py
 
 
