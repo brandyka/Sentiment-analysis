@@ -31,8 +31,8 @@ This project aims to analyze sentiment from sales reviews, The model used in thi
 - VSCode (For run model)
 - Pandas, NumPy, scipy.stats
 - scikit-learn
-- NLTK / Sastrawi (untuk preprocessing bahasa)
-- Matplotlib / Seaborn (opsional: visualisasi)
+- NLTK / Sastrawi (Language preprocessing)
+- Matplotlib / Seaborn (Visualization)
 - HTML, CSS, JS, Tailwind(Front end stack)
 
 
