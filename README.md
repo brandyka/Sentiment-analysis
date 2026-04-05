@@ -50,7 +50,7 @@ This project aims to analyze sentiment from sales reviews, The model used in thi
 
 **Dashboard**
 ![Dashboard](projectoverview/dashboard_1.png)
-![Dashboard](projectoverview/Dashboard_1.png)
+![Dashboard](projectoverview/Dashboard_2.png)
 ## Installation Instruction
 - Clone the repository from GitHub
 - Navigate to the project directory
